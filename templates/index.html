@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatBot</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f3e5f5; /* Light lavender background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .chat-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 80%;
+        max-width: 600px;
+        height: 70%;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #6a0dad; /* Deep purple */
+        color: white;
+        padding: 12px 20px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .header button {
+        background: white;
+        color: #6a0dad;
+        border: none;
+        border-radius: 5px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .header button:hover { background: #e1bee7; }
+
+    .chat-container {
+        flex: 1;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: #f3e5f5; /* light purple */
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 10px 14px;
+        margin: 5px 0;
+        border-radius: 15px;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .user-message {
+        background: #6a0dad; /* purple */
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 0;
+    }
+
+    .bot-message {
+        background: #d1c4e9; /* soft lavender */
+        color: #333;
+        align-self: flex-start;
+        border-bottom-left-radius: 0;
+    }
+
+    .input-container {
+        display: flex;
+        padding: 10px 15px;
+        background: #f3e5f5;
+        border-top: 1px solid #ccc;
+    }
+
+    .input-container input {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .input-container button {
+        margin-left: 10px;
+        padding: 12px 20px;
+        background: #6a0dad;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .input-container button:hover { background: #4b0082; }
+</style>
+</head>
+<body>
+
+<div class="chat-wrapper">
+    <div class="header">
+        <div>ChatBot</div>
+        <button onclick="newChat()">New Chat</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="bot-message message">Hello! I am your chatbot. Ask me anything.</div>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+const chatContainer = document.getElementById('chatContainer');
+const userInput = document.getElementById('userInput');
+
+function addMessage(text, className){
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message ' + className;
+    msgDiv.textContent = text;
+    chatContainer.appendChild(msgDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function sendMessage(){
+    const userText = userInput.value.trim();
+    if(!userText) return;
+    addMessage(userText, 'user-message');
+    userInput.value = '';
+
+    fetch('/get_reply', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: userText})
+    })
+    .then(response => response.json())
+    .then(data => addMessage(data.reply, 'bot-message'))
+    .catch(err => addMessage("Error: Could not get reply.", 'bot-message'));
+}
+
+function newChat(){
+    chatContainer.innerHTML = '';
+    addMessage("Hello! I am your chatbot. Ask me anything.", 'bot-message');
+}
+
+userInput.addEventListener("keypress", function(e){
+    if(e.key === "Enter") sendMessage();
+});
+</script>
+
+</body>
+</html>
